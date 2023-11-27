@@ -1,0 +1,55 @@
+name: Release
+run-name: Releasing '${{ github.event.repository.name }}' 📭...
+on:
+  workflow_call:
+  workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref_name }}-release
+  cancel-in-progress: true
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout code
+        uses: actions/checkout@v3
+      -
+        name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      -
+        name: Switch to node 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      -
+        name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      -
+        name: Lint library 🔬...
+        run: pnpm lint
+      -
+        name: Test library 🌡️...
+        run: pnpm test
+      -
+        name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1.4.4
+        with:
+          publish: pnpm release
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      -
+        name: Coverage
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets. CODECOV_TOKEN }}
+          directory: ./coverage
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
