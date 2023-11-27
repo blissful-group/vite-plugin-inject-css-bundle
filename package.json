@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-inject-css-bundle",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Import css bundle in-place in Vite lib mode",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
